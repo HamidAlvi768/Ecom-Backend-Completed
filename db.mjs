@@ -2,7 +2,7 @@
 import mongoose from 'mongoose';
 
 
-mongoose.connect('mongodb://127.0.0.1:27017/commerceD', {
+mongoose.connect('mongodb://127.0.0.1:27017/ecommerce', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
