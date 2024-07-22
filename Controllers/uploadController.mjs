@@ -1,21 +1,14 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
-import multer from 'multer';
+// controllers/uploadController.js
+import cloudinary from '../config/cloudinaryConfig.mjs';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const storage = multer.diskStorage({
-    destination: path.join(__dirname, '../uploads/'),
-    filename: (req, file, cb) => {
-        cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
-    }
-});
-
-const upload = multer({ storage });
-
-export const uploadFile = upload.single('file');
-
-export const uploadResponse = (req, res) => {
-    res.send({ filePath: `/uploads/${req.file.filename}` });
+export const uploadImage = async (req, res) => {
+  try {
+    const result = await cloudinary.uploader.upload(req.file.path);
+    res.status(200).json({
+      message: 'Image uploaded successfully!',
+      url: result.secure_url,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };

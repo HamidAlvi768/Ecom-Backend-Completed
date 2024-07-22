@@ -1,7 +1,10 @@
+// routes/uploadRoute.js
 import express from 'express';
-import { uploadFile, uploadResponse } from '../Controllers/uploadController.mjs';
+import { uploadImage } from '../Controllers/uploadController.mjs';
+import upload from '../multerConfig.js';
 
 const router = express.Router();
-router.route('/').post(uploadFile, uploadResponse);
+
+router.post('/upload', upload.single('image'), uploadImage);
 
 export default router;
