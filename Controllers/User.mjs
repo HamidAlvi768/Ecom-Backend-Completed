@@ -17,9 +17,9 @@ export const login = async (req, res) => {
     if (req.body.password && req.body.email) {
       let user = await User.findOne(req.body).select("-password");
       if (user) {
-        resp.send(user);
+        res.send(user);
       } else {
-        resp.send({ result: "No User Found" });
+        res.send({ result: "No User Found" });
       }
     }
   } catch (error) {
