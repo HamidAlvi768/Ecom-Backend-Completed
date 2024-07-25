@@ -3,9 +3,9 @@ import { signup, login } from "../Controllers/User.mjs";
 
 const router = express.Router();
 
-router.route("/signup").post(signup);
+router.post("/signup", signup);
 
-router.route("/login").post(login);
+router.post("/login", login);
 
 
 export default router;
