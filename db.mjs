@@ -1,8 +1,13 @@
+import dotenv from 'dotenv';
+
 // db.js
 import mongoose from 'mongoose';
+dotenv.config();
 
 
-mongoose.connect('mongodb://127.0.0.1:27017/ecommerce', {
+
+
+mongoose.connect(process.env.MONGODB_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
