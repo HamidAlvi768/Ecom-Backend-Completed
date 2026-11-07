@@ -24,6 +24,21 @@ Settings live in `.env`:
 | `PORT` | `5000` | API port |
 | `CORS_ORIGINS` | `http://localhost:3000,http://localhost:3001` | Sites allowed to call the API |
 
+## Tests
+
+`tests/api.e2e.test.mjs` checks every endpoint against the running server: auth and
+tokens, roles (401/403), validation, uploads, server-side order pricing, CORS and more.
+
+```
+npm run seed      # once: the tests log in as the seeded demo admin
+npm start         # in one terminal
+npm test          # in another
+```
+
+The tests create their own `e2e-...` accounts, products and orders and delete them
+afterwards. If the store (3000) and dashboard (3001) dev servers are running, the tests
+also check that they serve their pages; otherwise those checks are skipped.
+
 ## Accounts and roles
 
 - Anyone can sign up in the store; new accounts are **customers**.

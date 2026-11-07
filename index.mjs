@@ -49,9 +49,11 @@ app.delete('/api/orders/:id', adminOnly, deleteOrder);
 
 app.use('/api', (req, res) => res.status(404).json({ message: 'Not found' }));
 
-// Upload/validation errors -> JSON instead of an HTML stack trace
+// Errors -> JSON instead of an HTML stack trace, keeping the right status code
+// (e.g. 400 malformed JSON, 413 body or upload too large)
 app.use((err, req, res, next) => {
-  res.status(400).json({ message: err.message || 'Bad request' });
+  const status = err.code === 'LIMIT_FILE_SIZE' ? 413 : err.status || err.statusCode || 400;
+  res.status(status).json({ message: status >= 500 ? 'Server error' : err.message || 'Bad request' });
 });
 
 app.listen(PORT, () => {
