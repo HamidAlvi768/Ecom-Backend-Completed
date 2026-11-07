@@ -8,11 +8,16 @@ const publicUser = (user) => {
 };
 
 // POST /api/signup  { name, email, password }  ->  { result: user, auth: token }
+// Always creates a customer; the role can't be set from the request.
 export const signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, password } = req.body;
+    const email = String(req.body.email || "").toLowerCase().trim();
     if (!name || !email || !password) {
       return res.status(400).json({ message: "name, email and password are required" });
+    }
+    if (String(password).length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
     if (await User.findOne({ email })) {
       return res.status(409).json({ message: "An account with this email already exists" });
@@ -27,13 +32,14 @@ export const signup = async (req, res) => {
 // POST /api/login  { email, password }  ->  { user, auth: token }
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { password } = req.body;
+    const email = String(req.body.email || "").toLowerCase().trim();
     if (!email || !password) {
       return res.status(400).json({ result: "Email and password are required" });
     }
     const user = await User.findOne({ email });
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ result: "No User Found" });
+      return res.status(401).json({ result: "Wrong email or password" });
     }
     res.json({ user: publicUser(user), auth: signToken(user) });
   } catch (error) {
@@ -41,7 +47,10 @@ export const login = async (req, res) => {
   }
 };
 
-// GET /api/users
+// GET /api/me  -> the logged-in user (used by both apps to check their session)
+export const me = (req, res) => res.json({ user: req.user });
+
+// GET /api/users  (admin)
 export const getUsers = async (req, res) => {
   try {
     res.json(await User.find().select("-password"));

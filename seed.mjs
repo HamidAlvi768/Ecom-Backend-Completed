@@ -10,13 +10,15 @@ import User from "./models/Users.mjs";
 
 dotenv.config();
 
-const PORT = process.env.PORT || 5000;
-const BASE = `http://localhost:${PORT}/uploads`;
+const BASE = "/uploads"; // stored as a path; the frontends add the backend's address
 const uploadDir = path.resolve("uploads");
 fs.mkdirSync(uploadDir, { recursive: true });
 
-// Demo login for local testing only
-export const DEMO_USER = { name: "Demo User", email: "demo@example.com", password: "demo1234" };
+// Logins for local testing only
+const DEMO_USERS = [
+  { name: "Demo Customer", email: "demo@example.com", password: "demo1234", role: "customer" },
+  { name: "Demo Admin", email: "admin@example.com", password: "admin1234", role: "admin" },
+];
 
 const products = [
   { name: "Mountain Sunrise Poster", category: "Posters", company: "Earth Prints", price: 24, color: ["#f97316", "#7c2d12"] },
@@ -57,13 +59,20 @@ const run = async () => {
     };
   });
 
-  await Product.deleteMany({ image: { $regex: "/uploads/seed-" } });
-  await Product.insertMany(docs);
+  // Update by name so product ids stay the same (carts and orders keep working)
+  for (const doc of docs) {
+    await Product.findOneAndUpdate({ name: doc.name }, doc, { upsert: true });
+  }
 
-  await User.deleteOne({ email: DEMO_USER.email });
-  await User.create({ ...DEMO_USER, password: await bcrypt.hash(DEMO_USER.password, 10) });
+  for (const u of DEMO_USERS) {
+    await User.findOneAndUpdate(
+      { email: u.email },
+      { ...u, password: await bcrypt.hash(u.password, 10) },
+      { upsert: true }
+    );
+  }
 
-  console.log(`Seeded ${docs.length} products and demo user ${DEMO_USER.email}`);
+  console.log(`Seeded ${docs.length} products and accounts: ${DEMO_USERS.map((u) => `${u.email} (${u.role})`).join(", ")}`);
   await mongoose.disconnect();
 };
 

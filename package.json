@@ -7,8 +7,8 @@
     "start": "node index.mjs",
     "dev": "nodemon index.mjs",
     "seed": "node seed.mjs",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "netlify deploy --prod"
+    "make-admin": "node make-admin.mjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "hamid",
   "license": "ISC",

@@ -1,18 +1,32 @@
 import mongoose from "mongoose";
 
-// One document per customer email.
-// order_data is a list of orders; each order is an array whose first entry is
-// { Order_date } followed by the cart items ({ item: <product>, amount }).
-// This is the shape both React apps read.
+// One document per checkout.
+// Item names and prices are copied from the products collection when the order
+// is placed, so later product edits don't change past orders.
+const orderItemSchema = new mongoose.Schema(
+  {
+    product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+    name: String,
+    price: Number,
+    image: String,
+    amount: { type: Number, min: 1 },
+  },
+  { _id: false }
+);
+
+export const ORDER_STATUSES = ["pending", "shipped", "delivered", "cancelled", "refunded"];
+
 const orderSchema = new mongoose.Schema(
   {
-    email: { type: String, required: true, unique: true },
-    order_data: { type: Array, required: true },
-    address: String,
-    phoneNumber: String,
-    status: { type: String, default: "pending" },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    email: { type: String, required: true },
+    items: { type: [orderItemSchema], required: true },
+    total: { type: Number, required: true },
+    address: { type: String, required: true },
+    phoneNumber: { type: String, required: true },
+    status: { type: String, enum: ORDER_STATUSES, default: "pending" },
   },
-  { timestamps: true }
+  { timestamps: true } // createdAt = order date
 );
 
 export default mongoose.model("Order", orderSchema);

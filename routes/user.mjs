@@ -1,10 +1,10 @@
 import express from "express";
-import { signup, login, getUsers } from "../Controllers/User.mjs";
+import { getUsers } from "../Controllers/User.mjs";
+import { adminOnly } from "../middleware/auth.mjs";
 
+// Mounted at /api/users
 const router = express.Router();
 
-router.post("/signup", signup);
-router.post("/login", login);
-router.get("/", getUsers);
+router.get("/", adminOnly, getUsers);
 
 export default router;
