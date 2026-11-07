@@ -1,19 +1,23 @@
-// controllers/productController.js
+// controllers/Product.mjs
 import Product from "../models/Products.mjs";
-import cloudinary from "../config/cloudinaryConfig.mjs";
+
+// Uploaded images are saved in ./uploads and served at /uploads/<file>
+const imageUrl = (req) =>
+  req.file ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}` : undefined;
+
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export const addProduct = async (req, res) => {
   try {
-    const result = await cloudinary.uploader.upload(req.file.path);
-    const { name, price, category, company } = req.body;
-    const newProduct = new Product({
+    const { name, price, category, company, description } = req.body;
+    const newProduct = await Product.create({
       name,
       price,
       category,
       company,
-      image: result.secure_url,
+      description,
+      image: imageUrl(req) || "",
     });
-    await newProduct.save();
     res.status(201).json(newProduct);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -22,39 +26,33 @@ export const addProduct = async (req, res) => {
 
 export const getProducts = async (req, res) => {
   try {
-    const products = await Product.find();
-    res.status(200).json(products);
+    res.status(200).json(await Product.find());
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
 export const getProduct = async (req, res) => {
-try {
+  try {
     const product = await Product.findById(req.params.id);
-    res.send(product);
-} catch (error) {
-  res.status(500).json({ error: error.message });
-}
+    if (!product) return res.status(404).json({ message: "Product not found" });
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 export const updateProduct = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { name, price, description } = req.body;
-    const product = await Product.findById(id);
+    const product = await Product.findById(req.params.id);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-
-    product.name = name || product.name;
-    product.price = price || product.price;
-    product.description = description || product.description;
-
-    if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path);
-      product.imageUrl = result.secure_url;
+    for (const field of ["name", "price", "category", "company", "description"]) {
+      if (req.body[field] !== undefined && req.body[field] !== "") product[field] = req.body[field];
     }
+    const newImage = imageUrl(req);
+    if (newImage) product.image = newImage;
 
     await product.save();
     res.status(200).json(product);
@@ -66,19 +64,20 @@ export const updateProduct = async (req, res) => {
 export const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
-    res.send(product);
+    res.json(product);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
 export const searchProduct = async (req, res) => {
-  let products = await Product.find({
-    $or: [
-      { name: { $regex: req.params.key } },
-      { category: { $regex: req.params.key } },
-      { company: { $regex: req.params.key } },
-    ],
-  });
-  res.send(products);
+  try {
+    const key = new RegExp(escapeRegex(req.params.key), "i");
+    const products = await Product.find({
+      $or: [{ name: key }, { category: key }, { company: key }],
+    });
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };

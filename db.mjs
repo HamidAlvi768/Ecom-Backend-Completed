@@ -1,16 +1,15 @@
+// db.mjs
 import dotenv from 'dotenv';
-
-// db.js
 import mongoose from 'mongoose';
 dotenv.config();
 
+const url = process.env.MONGODB_URL || 'mongodb://127.0.0.1:27017/ecommerce';
 
-
-
-mongoose.connect(process.env.MONGODB_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+mongoose.connect(url).catch((err) => {
+  console.error('Could not connect to MongoDB. Is the MongoDB service running?\n', err.message);
+  process.exit(1);
 });
+
 const db = mongoose.connection;
 
 db.on('connected', () => {
@@ -18,5 +17,5 @@ db.on('connected', () => {
 });
 
 db.on('error', (err) => {
-  console.error('MongoDB connection error:', err);
+  console.error('MongoDB connection error:', err.message);
 });
